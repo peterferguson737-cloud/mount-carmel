@@ -2938,7 +2938,7 @@ function buildWorld(){
   canvas.addEventListener('pointerdown',function(e){
     if(drag&&drag.bird&&e.pointerId!==drag.id){drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY};drag.pd=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);drag.z0=bZoom;return}
     if(birdOn&&!dio.active&&e.pointerType!=='mouse'){drag={x:e.clientX,y:e.clientY,moved:0,bird:true,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
-    if(drag&&drag.joy&&e.pointerId!==drag.id){if(drag.p2)return;keys.tf=keys.tl=0;drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:performance.now(),mv:0};drag.cd=Math.max(10,Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy));drag.dist0=dist;drag.mx=(e.clientX+drag.cx)/2;drag.my=(e.clientY+drag.cy)/2;try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
+    if(drag&&drag.joy&&e.pointerId!==drag.id){if(drag.p2)return;drag.cam=false;drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:performance.now(),mv:0};drag.cd=Math.max(10,Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy));drag.dist0=dist;drag.mx=(e.clientX+drag.cx)/2;drag.my=(e.clientY+drag.cy)/2;try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
     var sAt=dio.active?-1:signAt(e);
     if(e.pointerType!=='mouse'&&!dio.active&&sAt<0){drag={x:e.clientX,y:e.clientY,ox:e.clientX,oy:e.clientY,cx:e.clientX,cy:e.clientY,moved:0,joy:true,id:e.pointerId,t0:performance.now()};auto=null;if(readerOpen)closeReader();try{canvas.setPointerCapture(e.pointerId)}catch(_){}var hn=$('touchHint');if(hn)hn.classList.add('gone');return}
     drag={x:e.clientX,y:e.clientY,moved:0};try{canvas.setPointerCapture(e.pointerId)}catch(_){}
@@ -2952,7 +2952,9 @@ function buildWorld(){
     if(drag.joy){
       if(e.pointerId===drag.id){drag.cx=e.clientX;drag.cy=e.clientY}else if(drag.p2&&e.pointerId===drag.p2.id){drag.p2.mv+=Math.hypot(e.clientX-drag.p2.x,e.clientY-drag.p2.y);drag.p2.x=e.clientX;drag.p2.y=e.clientY}else return;
       /* two fingers: pinch to zoom, move both together to turn and tilt the view */
-      if(drag.p2){var nmx=(drag.cx+drag.p2.x)/2,nmy=(drag.cy+drag.p2.y)/2,nd2=Math.max(10,Math.hypot(drag.p2.x-drag.cx,drag.p2.y-drag.cy));
+      /* a second finger that stays put is a tap to hop, and John keeps walking; only once it moves does it take the camera */
+      if(drag.p2&&!drag.cam&&drag.p2.mv>16){drag.cam=true;drag.cd=Math.max(10,Math.hypot(drag.p2.x-drag.cx,drag.p2.y-drag.cy));drag.dist0=dist;drag.mx=(drag.cx+drag.p2.x)/2;drag.my=(drag.cy+drag.p2.y)/2;keys.tf=keys.tl=0}
+      if(drag.p2&&drag.cam){var nmx=(drag.cx+drag.p2.x)/2,nmy=(drag.cy+drag.p2.y)/2,nd2=Math.max(10,Math.hypot(drag.p2.x-drag.cx,drag.p2.y-drag.cy));
         yaw-=(nmx-drag.mx)*.007;pitch=Math.min(1.25,Math.max(.04,pitch+(nmy-drag.my)*.005));drag.mx=nmx;drag.my=nmy;
         dist=Math.min(46,Math.max(6,drag.dist0*drag.cd/nd2));keys.tf=keys.tl=0;return}
       var jx=e.clientX-drag.ox,jy2=e.clientY-drag.oy;drag.moved=Math.max(drag.moved,Math.sqrt(jx*jx+jy2*jy2));joyKeys(jx,jy2);return}
@@ -2972,7 +2974,7 @@ function buildWorld(){
     var d=drag;if(!d)return;
     if(d.bird){if(d.p2&&e.pointerId===d.p2.id){d.p2=null;return}if(e.pointerId===d.id)drag=null;return}
     if(d.joy){
-      if(d.p2&&e.pointerId===d.p2.id){if(d.p2.mv<14&&performance.now()-d.p2.t0<260)keys.jump=true;d.p2=null;d.ox=d.cx;d.oy=d.cy;d.moved=99;return}
+      if(d.p2&&e.pointerId===d.p2.id){if(!d.cam&&d.p2.mv<16&&performance.now()-d.p2.t0<350)keys.jump=true;if(d.cam){d.ox=d.cx;d.oy=d.cy}d.p2=null;d.cam=false;d.moved=99;return}
       if(e.pointerId!==d.id)return;drag=null;keys.tf=keys.tl=0;if(!d.p2&&d.moved<12&&performance.now()-d.t0<300)keys.jump=true;return}
     drag=null;
     if(!dio.active){var was=pressIdx;pressIdx=-1;var tapK=e.pointerType&&e.pointerType!=='mouse'?18:8,si=was>=0?was:signAt(e);if(d.moved<tapK&&si>=0)openReader(si);return}
