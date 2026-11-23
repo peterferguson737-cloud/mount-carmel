@@ -223,7 +223,7 @@ var ROS=(function(){
     var tw=[];for(var k=0;k<4;k++){var st=ctx.glow(.9);st.material.opacity=0;g.add(st);tw.push({s:st,p:k*1.7,a:k/4*PI*2})}g.userData.tw=tw;
     return g}
   /* six places just inside the coping, from a small air to a full-speed launch */
-  var SPOTS=[[.06,17],[.22,20.5],[.36,24],[.55,18.5],[.71,29.5],[.88,22.5]],list=SPOTS.map(function(sp,k){
+  var SPOTS=[[.06,28],[.22,32],[.36,36],[.55,30],[.71,41],[.88,34]],list=SPOTS.map(function(sp,k){
     var o=outline(sp[0]*PER),u=15.1,g=model(),px=o.px+o.nx*u,pz=o.pz+o.nz*u;g.position.set(px,sp[1],pz);g.rotation.y=Math.atan2(-o.nx,-o.nz);g.visible=!got[k];scene.add(g);
     return {g:g,y0:sp[1],face:Math.atan2(-o.nx,-o.nz),ph:k*1.3,t:-1,nx:o.nx,nz:o.nz,px:px,pz:pz,y:sp[1]}});
   try{if(typeof document!=='undefined'&&document.createElement){el=document.createElement('div');el.id='skRos';el.setAttribute('aria-live','polite');document.body.appendChild(el);
@@ -401,7 +401,7 @@ function ride(dt){
     var steepNow=Math.hypot(g.x,g.z)>2.4;
     var popped=!I.x&&crouch>0;
     if(P.tri){var nr=nearRail(S.x,S.y,S.z,3.6);if(nr&&nr.r.a[1]-S.y<2.2){popped=true;crouch=Math.max(crouch,.25);triBuf=.5}}
-    if(steepNow&&vy>4){var gl=grad(nx,nz);vN.set(-gl.x,1,-gl.z).normalize();vF.set(fx,0,fz);vF.addScaledVector(vN,-vF.dot(vN)).normalize();var ow2=outward(nx,nz),cosA=Math.max(0,fx*ow2.x+fz*ow2.z);vO.x=ow2.x;vO.z=ow2.z;vLaunch=Math.abs(S.v);S.air=true;S.vert=true;S.vel.set(0,Math.min(58,Math.abs(S.v)*(.4+.55*cosA)),0);   /* big airs, but never more than about one and a half ramps high */vV0=Math.max(1,S.vel.y);S.airT=0;S.x=nx;S.z=nz;S.y=y1;crouch=0;body.scale.y=1;tone(520,.1)}
+    if(steepNow&&vy>4){var gl=grad(nx,nz);vN.set(-gl.x,1,-gl.z).normalize();vF.set(fx,0,fz);vF.addScaledVector(vN,-vF.dot(vN)).normalize();var ow2=outward(nx,nz),cosA=Math.max(0,fx*ow2.x+fz*ow2.z);vO.x=ow2.x;vO.z=ow2.z;vLaunch=Math.abs(S.v);S.air=true;S.vert=true;S.vel.set(0,Math.min(80,Math.abs(S.v)*(.52+.68*cosA)),0);   /* big airs: a full-speed launch flies well over twice the bowl's height, up to the highest rosaries */vV0=Math.max(1,S.vel.y);S.airT=0;S.x=nx;S.z=nz;S.y=y1;crouch=0;body.scale.y=1;tone(520,.1)}
     else if(popped||(y1<y0+vy*dt-.18&&S.v>12)){
       var hs=S.v*cs,pop=popped?13.5+Math.min(crouch,.35)*21:0;crouch=0;body.scale.y=1;
       S.air=true;S.vert=false;S.vel.set(fx*hs,(vy>0?vy:0)+pop,fz*hs);S.airT=0;S.x=nx;S.z=nz;S.y=y1;if(popped)tone(420,.08)}
