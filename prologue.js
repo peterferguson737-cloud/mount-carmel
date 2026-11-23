@@ -107,12 +107,12 @@ MECH.prologuefp=function(D,sp){
   function draw(b,n){var g=b.g,F='px "Quicksand","Trebuchet MS",sans-serif',T2=b.txt.toUpperCase(),SP=7,k,full=0,x;
     g.clearRect(0,0,1024,300);g.font='700 44'+F;for(k=0;k<T2.length;k++)full+=g.measureText(T2.charAt(k)).width+SP;full-=SP;
     var w=Math.min(1000,full+110),h=124,x0=(1024-w)/2,y0=(300-h)/2,r=h/2;
-    g.fillStyle='#3a2a20';rrect(g,x0-9,y0-9,w+18,h+18,r+9);g.fill();g.fillStyle='#f4f0e6';rrect(g,x0,y0,w,h,r);g.fill();
+    g.save();g.shadowColor='rgba(255,236,204,.75)';g.shadowBlur=36;g.fillStyle='rgba(58,42,32,.62)';rrect(g,x0-7,y0-7,w+14,h+14,r+7);g.fill();g.restore();g.fillStyle='rgba(246,241,231,.8)';rrect(g,x0,y0,w,h,r);g.fill();
     g.fillStyle='#2a1d16';g.textAlign='left';g.textBaseline='middle';x=512-full/2;for(k=0;k<n;k++){var ch=T2.charAt(k);g.fillText(ch,x,y0+h/2+2);x+=g.measureText(ch).width+SP}
     b.tex.needsUpdate=true}
   function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
   function bubbles(dt){BUB.forEach(function(b){b.t+=dt;var n=Math.min(b.txt.length,Math.floor(b.t*26));if(n!==b.n){if(n>b.n&&/[A-Za-z]/.test(b.txt.charAt(n-1))&&n%2)note(330+(n%5)*30,0,.04,'sine',.016);b.n=n;draw(b,n)}
-    var gone=b.out||b.t>b.txt.length/26+3.2||me.s>b.v.s+6,m=b.sp.material;m.opacity+=((gone?0:1)-m.opacity)*Math.min(1,dt*(gone?3:8));
+    var gone=b.out||b.t>b.txt.length/26+3.2||me.s>b.v.s+6,m=b.sp.material,breathe=reduce?1:.86+.14*Math.sin(b.t*1.3);m.opacity+=((gone?0:breathe)-m.opacity)*Math.min(1,dt*(gone?3:8));
     if(gone&&m.opacity<.02&&b.sp.parent){b.sp.parent.remove(b.sp);b.dead=true}});BUB=BUB.filter(function(b){return !b.dead})}
 
   /* ── the guide: a figure with a lantern, waiting in the dark beyond the fires ── */

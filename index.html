@@ -233,6 +233,10 @@ body.reading #prompt,body.reading .walk,body.reading .zone,body.reading .mount,b
 #sc.fp .sc-nav{display:none}
 #sc.fp.done .sc-nav{display:flex}
 #sc.fp #bubble{min-height:0;padding:9px 18px 10px;font-size:.66rem;line-height:1.45;max-width:min(100%,520px)}
+/* in the scenes the typed bubble is a little see-through and softly lit, and it breathes */
+#sc.fp #bubble{background:rgba(246,241,231,.76);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 0 0 2px rgba(42,29,22,.6),0 0 16px 2px rgba(255,236,204,.26);animation:bubGlow 4.8s ease-in-out infinite}
+@keyframes bubGlow{0%,100%{background-color:rgba(246,241,231,.7);box-shadow:0 0 0 2px rgba(42,29,22,.55),0 0 12px 1px rgba(255,236,204,.2)}50%{background-color:rgba(246,241,231,.84);box-shadow:0 0 0 2px rgba(42,29,22,.65),0 0 24px 5px rgba(255,236,204,.38)}}
+@media (prefers-reduced-motion:reduce){#sc.fp #bubble{animation:none}}
 #sc.fp #bMore{font-size:.92rem;margin-top:7px;padding-top:7px}
 #sc.fp .fpbtn{display:none}
 @media (pointer:coarse){kbd{display:none}}
