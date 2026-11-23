@@ -236,7 +236,8 @@ var ROS=(function(){
     [523,659,784,1047,1319].forEach(function(f,k){tone(f,.9,k*.14)});tone(262,2.4,.1)}
   if(gotN===N)crown();
   return {
-    hello:function(){hello=3.2},count:function(){return gotN},where:function(){return list.map(function(r){return [r.px,r.y0,r.pz,r.nx,r.nz]})},reset:function(){for(var k=0;k<N;k++){got[k]=false;list[k].g.visible=true;list[k].t=-1}gotN=0;label()},
+    /* every visit to the bowl is a fresh hunt: all six rosaries are back in the air and the crown is taken down */
+    hello:function(){for(var k=0;k<N;k++){got[k]=false;list[k].g.visible=true;list[k].t=-1}gotN=0;if(all){scene.remove(all);all=null}save();label();hello=3.2},count:function(){return gotN},where:function(){return list.map(function(r){return [r.px,r.y0,r.pz,r.nx,r.nz]})},reset:function(){for(var k=0;k<N;k++){got[k]=false;list[k].g.visible=true;list[k].t=-1}gotN=0;label()},
     update:function(dt,t){
       if(hello>0){hello-=dt;if(hello<=0)say(gotN<N?'Find the six rosaries':'All six rosaries found',gotN<N?'Launch out of the bowl to reach them':'Hail, holy Queen')}
       var bx=S.x,by=S.y+1.6,bz=S.z;
