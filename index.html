@@ -2924,21 +2924,25 @@ function buildWorld(){
   scene.traverse(function(o){if(o.isMesh&&o.material&&o.material.isMeshStandardMaterial){o.castShadow=true;o.receiveShadow=true}});
   var dio=buildDio(),drag=null;
   function ndc(e){return {x:(e.clientX/cw)*2-1,y:-(e.clientY/ch)*2+1}}
-  function onSign(e){
-    var lb=promptIdx>=0?labels[promptIdx]:null;if(!lb||!lb.visible)return false;
-    var c=ndc(e),a=lb.position.clone().project(camera),b=lb.position.clone();b.y+=lb.scale.y/2;b.project(camera);
-    var hh2=Math.abs(b.y-a.y)*1.2,hw=hh2*(lb.scale.x/lb.scale.y)*(ch/cw);
-    return a.z<1&&Math.abs(c.x-a.x)<Math.max(hw,.09)&&c.y<a.y+hh2&&c.y>a.y-hh2*(ICON[promptIdx]?1.9:6);
-  }
+  /* which lantern's sign is under the pointer: the one John is beside, or any floating plate that is showing; -1 if none.
+     Generous on touch, where a fingertip is broad. */
+  function hitLabel(e,k,touch){var lb=labels[k];if(!lb||!lb.visible)return false;if(lb.userData.float&&lb.material.opacity<.25)return false;
+    var c=ndc(e),a=lb.position.clone().project(camera),b=lb.position.clone();b.y+=lb.scale.y/2;b.project(camera);if(a.z>=1)return false;
+    var hh2=Math.abs(b.y-a.y)*(touch?1.9:1.2),hw=Math.abs(b.y-a.y)*1.2*(lb.scale.x/lb.scale.y)*(ch/cw)*(touch?1.15:1);
+    return Math.abs(c.x-a.x)<Math.max(hw,touch?.16:.09)&&c.y<a.y+hh2&&c.y>a.y-hh2*(lb.userData.float?1.2:ICON[k]?1.9:6)}
+  function signAt(e){var touch=e.pointerType&&e.pointerType!=='mouse';if(promptIdx>=0&&hitLabel(e,promptIdx,touch))return promptIdx;
+    for(var q=0;q<floatIdx.length;q++)if(hitLabel(e,floatIdx[q],touch))return floatIdx[q];return -1}
+  function onSign(e){return signAt(e)>=0}
   canvas.addEventListener('pointercancel',function(){drag=null;pressIdx=-1});
   function joyKeys(dx,dy){var dz=function(v){var a=Math.abs(v)-12;return a<=0?0:Math.sign(v)*Math.min(1,a/95)};keys.tf=-dz(dy);keys.tl=-dz(dx)}
   canvas.addEventListener('pointerdown',function(e){
     if(drag&&drag.bird&&e.pointerId!==drag.id){drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY};drag.pd=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);drag.z0=bZoom;return}
     if(birdOn&&!dio.active&&e.pointerType!=='mouse'){drag={x:e.clientX,y:e.clientY,moved:0,bird:true,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
     if(drag&&drag.joy&&e.pointerId!==drag.id){if(drag.p2)return;keys.tf=keys.tl=0;drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:performance.now(),mv:0};drag.cd=Math.max(10,Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy));drag.dist0=dist;drag.mx=(e.clientX+drag.cx)/2;drag.my=(e.clientY+drag.cy)/2;try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
-    if(e.pointerType!=='mouse'&&!dio.active&&!onSign(e)){drag={x:e.clientX,y:e.clientY,ox:e.clientX,oy:e.clientY,cx:e.clientX,cy:e.clientY,moved:0,joy:true,id:e.pointerId,t0:performance.now()};auto=null;if(readerOpen)closeReader();try{canvas.setPointerCapture(e.pointerId)}catch(_){}var hn=$('touchHint');if(hn)hn.classList.add('gone');return}
+    var sAt=dio.active?-1:signAt(e);
+    if(e.pointerType!=='mouse'&&!dio.active&&sAt<0){drag={x:e.clientX,y:e.clientY,ox:e.clientX,oy:e.clientY,cx:e.clientX,cy:e.clientY,moved:0,joy:true,id:e.pointerId,t0:performance.now()};auto=null;if(readerOpen)closeReader();try{canvas.setPointerCapture(e.pointerId)}catch(_){}var hn=$('touchHint');if(hn)hn.classList.add('gone');return}
     drag={x:e.clientX,y:e.clientY,moved:0};try{canvas.setPointerCapture(e.pointerId)}catch(_){}
-    if(!dio.active&&onSign(e)){pressIdx=promptIdx;var pv=labels[pressIdx].userData.inv;if(pv&&!pv.material.map){pv.material.map=signTex(pressIdx,true);pv.material.needsUpdate=true}}
+    if(sAt>=0){pressIdx=sAt;var pv=labels[pressIdx].userData.inv;if(pv&&!pv.material.map){pv.material.map=signTex(pressIdx,true);pv.material.needsUpdate=true}}
     if(dio.active){var p=ndc(e),h=dio.pick(p.x,p.y);drag.n=p;dio.ptr=p;if(h&&h.userData.drag)drag.obj=h}
   });
   canvas.addEventListener('pointermove',function(e){
@@ -2961,7 +2965,7 @@ function buildWorld(){
       else dio.yaw=Math.max(-.8,Math.min(.8,dio.yaw-dx*.005));
       drag.n=p;
     }else if(birdOn){bYaw-=dx*.006;bTilt=Math.max(-.5,Math.min(.45,bTilt+dy*.004))}
-    else{if(drag.moved>8)pressIdx=-1;yaw-=dx*.006;pitch=Math.min(1.25,Math.max(.04,pitch+dy*.004))}
+    else{if(drag.moved>(e.pointerType!=="mouse"?18:8))pressIdx=-1;yaw-=dx*.006;pitch=Math.min(1.25,Math.max(.04,pitch+dy*.004))}
     drag.x=e.clientX;drag.y=e.clientY;
   });
   canvas.addEventListener('pointerup',function(e){
@@ -2971,7 +2975,7 @@ function buildWorld(){
       if(d.p2&&e.pointerId===d.p2.id){if(d.p2.mv<14&&performance.now()-d.p2.t0<260)keys.jump=true;d.p2=null;d.ox=d.cx;d.oy=d.cy;d.moved=99;return}
       if(e.pointerId!==d.id)return;drag=null;keys.tf=keys.tl=0;if(!d.p2&&d.moved<12&&performance.now()-d.t0<300)keys.jump=true;return}
     drag=null;
-    if(!dio.active){var was=pressIdx;pressIdx=-1;if(d.moved<8&&(was>=0||onSign(e))&&promptIdx>=0)openReader(promptIdx);return}
+    if(!dio.active){var was=pressIdx;pressIdx=-1;var tapK=e.pointerType&&e.pointerType!=='mouse'?18:8,si=was>=0?was:signAt(e);if(d.moved<tapK&&si>=0)openReader(si);return}
     var p=ndc(e),tap=d.moved<8;
     if(d.obj)d.obj.userData.drag.end(p,tap);
     else if(tap){var hh=dio.pick(p.x,p.y);if(hh)hh.userData.fn()}
