@@ -284,7 +284,7 @@ body.reading #prompt,body.reading .walk,body.reading .zone,body.reading .mount,b
     <div class="where" id="hudWhere">The road begins</div>
     <div class="lit" id="hudLit">Lanterns lit 0 of 95</div>
   </div>
-  <div id="touchHint">Drag to walk · tap to jump</div>
+  <div id="touchHint">Drag to walk · tap to jump · two fingers to move the camera</div>
   <div id="skateUI"><button class="btn" id="btnSkateBack" type="button">Climb back up</button></div>
   <div id="skateHelp" aria-label="Skateboard controls">
     <div class="sk-k">
@@ -412,7 +412,7 @@ body.reading #prompt,body.reading .walk,body.reading .zone,body.reading .mount,b
             <dt>Jump</dt><dd>Tap. While dragging, tap with a second finger. Jump toward the edge to leap off it.</dd>
             <dt>Lanterns</dt><dd>Walk up to one and tap its sign.</dd>
             <dt>Scenes</dt><dd>Tap, drag or swipe as the bubble says; when a scene asks you to hold, press and hold.</dd>
-            <dt>Views</dt><dd>The journal and bird's-eye view are at the top. In bird's-eye view, drag to turn and pinch to zoom.</dd>
+            <dt>Views</dt><dd>The journal and bird's-eye view are at the top. In bird's-eye view, drag to turn and pinch to zoom. On a phone, two fingers move the camera anywhere: pinch to zoom, slide both to turn and tilt.</dd>
           </dl>
         </div>
       </section>
@@ -2919,8 +2919,8 @@ function buildWorld(){
   canvas.addEventListener('pointerdown',function(e){
     if(drag&&drag.bird&&e.pointerId!==drag.id){drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY};drag.pd=Math.hypot(e.clientX-drag.x,e.clientY-drag.y);drag.z0=bZoom;return}
     if(birdOn&&!dio.active&&e.pointerType!=='mouse'){drag={x:e.clientX,y:e.clientY,moved:0,bird:true,id:e.pointerId};try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
-    if(drag&&drag.joy&&e.pointerId!==drag.id){keys.jump=true;return}
-    if(e.pointerType!=='mouse'&&!dio.active){drag={x:e.clientX,y:e.clientY,ox:e.clientX,oy:e.clientY,moved:0,joy:true,id:e.pointerId,t0:performance.now()};auto=null;if(readerOpen)closeReader();try{canvas.setPointerCapture(e.pointerId)}catch(_){}var hn=$('touchHint');if(hn)hn.classList.add('gone');return}
+    if(drag&&drag.joy&&e.pointerId!==drag.id){if(drag.p2)return;keys.tf=keys.tl=0;drag.p2={id:e.pointerId,x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:performance.now(),mv:0};drag.cd=Math.max(10,Math.hypot(e.clientX-drag.cx,e.clientY-drag.cy));drag.dist0=dist;drag.mx=(e.clientX+drag.cx)/2;drag.my=(e.clientY+drag.cy)/2;try{canvas.setPointerCapture(e.pointerId)}catch(_){}return}
+    if(e.pointerType!=='mouse'&&!dio.active){drag={x:e.clientX,y:e.clientY,ox:e.clientX,oy:e.clientY,cx:e.clientX,cy:e.clientY,moved:0,joy:true,id:e.pointerId,t0:performance.now()};auto=null;if(readerOpen)closeReader();try{canvas.setPointerCapture(e.pointerId)}catch(_){}var hn=$('touchHint');if(hn)hn.classList.add('gone');return}
     drag={x:e.clientX,y:e.clientY,moved:0};try{canvas.setPointerCapture(e.pointerId)}catch(_){}
     if(!dio.active&&onSign(e)){pressIdx=promptIdx;var pv=labels[pressIdx].userData.inv;if(pv&&!pv.material.map){pv.material.map=signTex(pressIdx,true);pv.material.needsUpdate=true}}
     if(dio.active){var p=ndc(e),h=dio.pick(p.x,p.y);drag.n=p;dio.ptr=p;if(h&&h.userData.drag)drag.obj=h}
@@ -2929,7 +2929,13 @@ function buildWorld(){
     if(!drag){if(dio.active){var q=ndc(e);dio.ptr=q;canvas.style.cursor=dio.pick(q.x,q.y)?'pointer':''}return}
     if(drag.bird){if(drag.p2&&e.pointerId===drag.p2.id){drag.p2.x=e.clientX;drag.p2.y=e.clientY}else if(e.pointerId===drag.id){var bdx=e.clientX-drag.x,bdy=e.clientY-drag.y;if(!drag.p2){bYaw-=bdx*.006;bTilt=Math.max(-.5,Math.min(.45,bTilt+bdy*.004))}drag.x=e.clientX;drag.y=e.clientY}
       if(drag.p2){var nd=Math.hypot(drag.p2.x-drag.x,drag.p2.y-drag.y);if(drag.pd>10)bZoom=Math.max(.4,Math.min(1.6,drag.z0*drag.pd/Math.max(10,nd)))}return}
-    if(drag.joy){if(e.pointerId!==drag.id)return;var jx=e.clientX-drag.ox,jy2=e.clientY-drag.oy;drag.moved=Math.max(drag.moved,Math.sqrt(jx*jx+jy2*jy2));joyKeys(jx,jy2);return}
+    if(drag.joy){
+      if(e.pointerId===drag.id){drag.cx=e.clientX;drag.cy=e.clientY}else if(drag.p2&&e.pointerId===drag.p2.id){drag.p2.mv+=Math.hypot(e.clientX-drag.p2.x,e.clientY-drag.p2.y);drag.p2.x=e.clientX;drag.p2.y=e.clientY}else return;
+      /* two fingers: pinch to zoom, move both together to turn and tilt the view */
+      if(drag.p2){var nmx=(drag.cx+drag.p2.x)/2,nmy=(drag.cy+drag.p2.y)/2,nd2=Math.max(10,Math.hypot(drag.p2.x-drag.cx,drag.p2.y-drag.cy));
+        yaw-=(nmx-drag.mx)*.007;pitch=Math.min(1.25,Math.max(.04,pitch+(nmy-drag.my)*.005));drag.mx=nmx;drag.my=nmy;
+        dist=Math.min(46,Math.max(6,drag.dist0*drag.cd/nd2));keys.tf=keys.tl=0;return}
+      var jx=e.clientX-drag.ox,jy2=e.clientY-drag.oy;drag.moved=Math.max(drag.moved,Math.sqrt(jx*jx+jy2*jy2));joyKeys(jx,jy2);return}
     var dx=e.clientX-drag.x,dy=e.clientY-drag.y,d=Math.sqrt(dx*dx+dy*dy);drag.moved+=d;
     if(dio.active){
       var p=ndc(e);
@@ -2945,7 +2951,9 @@ function buildWorld(){
   canvas.addEventListener('pointerup',function(e){
     var d=drag;if(!d)return;
     if(d.bird){if(d.p2&&e.pointerId===d.p2.id){d.p2=null;return}if(e.pointerId===d.id)drag=null;return}
-    if(d.joy){if(e.pointerId!==d.id)return;drag=null;keys.tf=keys.tl=0;if(d.moved<12&&performance.now()-d.t0<300)keys.jump=true;return}
+    if(d.joy){
+      if(d.p2&&e.pointerId===d.p2.id){if(d.p2.mv<14&&performance.now()-d.p2.t0<260)keys.jump=true;d.p2=null;d.ox=d.cx;d.oy=d.cy;d.moved=99;return}
+      if(e.pointerId!==d.id)return;drag=null;keys.tf=keys.tl=0;if(!d.p2&&d.moved<12&&performance.now()-d.t0<300)keys.jump=true;return}
     drag=null;
     if(!dio.active){var was=pressIdx;pressIdx=-1;if(d.moved<8&&(was>=0||onSign(e))&&promptIdx>=0)openReader(promptIdx);return}
     var p=ndc(e),tap=d.moved<8;
