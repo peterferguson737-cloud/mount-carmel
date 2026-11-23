@@ -107,7 +107,7 @@ MECH.prologuefp=function(D,sp){
   function draw(b,n){var g=b.g,F='px "Quicksand","Trebuchet MS",sans-serif',T2=b.txt.toUpperCase(),SP=7,k,full=0,x;
     g.clearRect(0,0,1024,300);g.font='700 44'+F;for(k=0;k<T2.length;k++)full+=g.measureText(T2.charAt(k)).width+SP;full-=SP;
     var w=Math.min(1000,full+110),h=124,x0=(1024-w)/2,y0=(300-h)/2,r=h/2;
-    g.save();g.shadowColor='rgba(255,236,204,.75)';g.shadowBlur=36;g.fillStyle='rgba(58,42,32,.62)';rrect(g,x0-7,y0-7,w+14,h+14,r+7);g.fill();g.restore();g.fillStyle='rgba(246,241,231,.8)';rrect(g,x0,y0,w,h,r);g.fill();
+    g.save();g.shadowColor='rgba(255,232,196,.95)';g.shadowBlur=48;g.fillStyle='rgba(246,241,231,.5)';rrect(g,x0,y0,w,h,r);g.fill();g.restore();g.lineWidth=4;g.strokeStyle='rgba(255,246,228,.6)';rrect(g,x0,y0,w,h,r);g.stroke();
     g.fillStyle='#2a1d16';g.textAlign='left';g.textBaseline='middle';x=512-full/2;for(k=0;k<n;k++){var ch=T2.charAt(k);g.fillText(ch,x,y0+h/2+2);x+=g.measureText(ch).width+SP}
     b.tex.needsUpdate=true}
   function rrect(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
