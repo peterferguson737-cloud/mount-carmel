@@ -2932,8 +2932,8 @@ function buildWorld(){
      Generous on touch, where a fingertip is broad. */
   function hitLabel(e,k,touch){var lb=labels[k];if(!lb||!lb.visible)return false;if(lb.userData.float&&lb.material.opacity<.25)return false;
     var c=ndc(e),a=lb.position.clone().project(camera),b=lb.position.clone();b.y+=lb.scale.y/2;b.project(camera);if(a.z>=1)return false;
-    var hh2=Math.abs(b.y-a.y)*(touch?1.9:1.2),hw=Math.abs(b.y-a.y)*1.2*(lb.scale.x/lb.scale.y)*(ch/cw)*(touch?1.15:1);
-    return Math.abs(c.x-a.x)<Math.max(hw,touch?.16:.09)&&c.y<a.y+hh2&&c.y>a.y-hh2*(lb.userData.float?1.2:ICON[k]?1.9:6)}
+    var hh2=Math.abs(b.y-a.y)*(touch?1.9:1.6),hw=Math.abs(b.y-a.y)*1.2*(lb.scale.x/lb.scale.y)*(ch/cw)*(touch?1.15:1.08);
+    return Math.abs(c.x-a.x)<Math.max(hw,touch?.16:.12)&&c.y<a.y+hh2&&c.y>a.y-hh2*(lb.userData.float?1.2:ICON[k]?1.9:6)}
   function signAt(e){var touch=e.pointerType&&e.pointerType!=='mouse';if(promptIdx>=0&&hitLabel(e,promptIdx,touch))return promptIdx;
     for(var q=0;q<floatIdx.length;q++)if(hitLabel(e,floatIdx[q],touch))return floatIdx[q];return -1}
   function onSign(e){return signAt(e)>=0}
@@ -2971,7 +2971,7 @@ function buildWorld(){
       else dio.yaw=Math.max(-.8,Math.min(.8,dio.yaw-dx*.005));
       drag.n=p;
     }else if(birdOn){bYaw-=dx*.006;bTilt=Math.max(-.5,Math.min(.45,bTilt+dy*.004))}
-    else{if(drag.moved>(e.pointerType!=="mouse"?18:8))pressIdx=-1;yaw-=dx*.006;pitch=Math.min(1.25,Math.max(.04,pitch+dy*.004))}
+    else{if(drag.moved>(e.pointerType!=="mouse"?18:14))pressIdx=-1;yaw-=dx*.006;pitch=Math.min(1.25,Math.max(.04,pitch+dy*.004))}
     drag.x=e.clientX;drag.y=e.clientY;
   });
   canvas.addEventListener('pointerup',function(e){
@@ -2981,7 +2981,7 @@ function buildWorld(){
       if(d.p2&&e.pointerId===d.p2.id){if(!d.cam&&d.p2.mv<16&&performance.now()-d.p2.t0<350)keys.jump=true;if(d.cam){d.ox=d.cx;d.oy=d.cy}d.p2=null;d.cam=false;d.moved=99;return}
       if(e.pointerId!==d.id)return;drag=null;keys.tf=keys.tl=0;if(!d.p2&&d.moved<12&&performance.now()-d.t0<300)keys.jump=true;return}
     drag=null;
-    if(!dio.active){var was=pressIdx;pressIdx=-1;var tapK=e.pointerType&&e.pointerType!=='mouse'?18:8,si=was>=0?was:signAt(e);if(d.moved<tapK&&si>=0)openReader(si);return}
+    if(!dio.active){var was=pressIdx;pressIdx=-1;var tapK=e.pointerType&&e.pointerType!=='mouse'?18:14,si=was>=0?was:signAt(e);if(d.moved<tapK&&si>=0)openReader(si);return}
     var p=ndc(e),tap=d.moved<8;
     if(d.obj)d.obj.userData.drag.end(p,tap);
     else if(tap){var hh=dio.pick(p.x,p.y);if(hh)hh.userData.fn()}
